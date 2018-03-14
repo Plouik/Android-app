@@ -22,13 +22,14 @@ import android.location.Location;
 import org.joda.time.DateTime;
 import android.Manifest;
 import android.content.pm.PackageManager;
-import android.location.Location;
 import android.widget.Toast;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.app.ActivityCompat;
 import com.google.android.gms.maps.GoogleMap.OnMyLocationButtonClickListener;
 import com.google.android.gms.maps.GoogleMap.OnMyLocationClickListener;
-
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.*;
+import com.google.android.gms.tasks.OnSuccessListener;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -54,6 +55,7 @@ public class MapsActivity extends FragmentActivity implements
     private GoogleMap mMap;
     com.google.maps.model.LatLng origin;
     String destination,origine;
+    private FusedLocationProviderClient mFusedLocationClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -94,6 +96,13 @@ public class MapsActivity extends FragmentActivity implements
         }
     }
 
+
+/* penser à voir la doc api google cf historique 14/03
+    Il y a l'actualisation de la géolocalisation
+        WAZE => moyen de choper les directions ?
+        demander à Woodware pour l'actualisation et la mémoire de l'appli 
+ */
+
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap=googleMap;
@@ -102,6 +111,17 @@ public class MapsActivity extends FragmentActivity implements
         mMap.setOnMyLocationButtonClickListener(this);
         mMap.setOnMyLocationClickListener(this);
         mMap.setMyLocationEnabled(true);
+        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        mFusedLocationClient.getLastLocation()
+                .addOnSuccessListener(this, new OnSuccessListener<Location>() {
+                    @Override
+                    public void onSuccess(Location location) {
+                        // Got last known location. In some rare situations this can be null.
+                        if (location != null) {
+                            // Logic to handle location object
+                        }
+                    }
+                });
 
         DirectionsResult results = getDirectionsDetails(origine,destination,TravelMode.DRIVING);
         if (results != null) {
@@ -111,8 +131,20 @@ public class MapsActivity extends FragmentActivity implements
         }
     }
 
+    protected void createLocationRequest() {
+       LocationRequest mLocationRequest = new LocationRequest();
+       mLocationRequest.setInterval(10000);
+       mLocationRequest.setFastestInterval(5000);
+       mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 
-    @Override
+       LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
+                .addLocationRequest(mLocationRequest);
+
+
+    }
+
+
+             @Override
     public boolean onMyLocationButtonClick() {
         Toast.makeText(this, "MyLocation button clicked", Toast.LENGTH_SHORT).show();
         // Return false so that we don't consume the event and the default behavior still occurs
