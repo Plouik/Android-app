@@ -127,7 +127,7 @@ public class MainActivity extends Activity implements OnItemClickListener{
             } catch (JSONException e) {
                 Log.e(LOG_TAG, "Cannot process JSON results", e);
             }
-/* drtujk*/
+/* drtujk*zaza*/
             return resultList;
         }
 
