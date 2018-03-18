@@ -8,10 +8,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.widget.Toast;
 
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.location.LocationSettingsRequest;
+
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.GoogleMap.OnMyLocationButtonClickListener;
@@ -22,7 +19,7 @@ import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
-import com.google.android.gms.tasks.OnSuccessListener;
+
 import com.google.maps.DirectionsApi;
 import com.google.maps.GeoApiContext;
 import com.google.maps.android.PolyUtil;
@@ -49,10 +46,13 @@ public class MapsActivity extends FragmentActivity implements
             Création de l'itinéraire via l'API Direction de google
             Affichage de l'itinaire sur une google map
          */
+
+        /////////// pour itinéraire ///////////
     private static final int overview = 0;
     private GoogleMap mMap;
     String destination,origine;
-    private FusedLocationProviderClient mFusedLocationClient;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,11 +61,14 @@ public class MapsActivity extends FragmentActivity implements
         Bundle extras = getIntent().getExtras();
         destination = extras.getString("destination");
         origine = "Abbeville, France";
+
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
-    }
 
+
+    }
+    /////////////////////////: création de l'itiniaire ////////////////////////////////////////
 
 
     private GeoApiContext getGeoContext() {
@@ -103,12 +106,6 @@ public class MapsActivity extends FragmentActivity implements
     }
 
 
-/* penser à voir la doc api google cf historique 14/03
-    Il y a l'actualisation de la géolocalisation
-        WAZE => moyen de choper les directions ?
-        demander à Woodware pour l'actualisation et la mémoire de l'appli
- */
-
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap=googleMap;
@@ -117,17 +114,6 @@ public class MapsActivity extends FragmentActivity implements
         mMap.setOnMyLocationButtonClickListener(this);
         mMap.setOnMyLocationClickListener(this);
         mMap.setMyLocationEnabled(true);
-        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-        mFusedLocationClient.getLastLocation()
-                .addOnSuccessListener(this, new OnSuccessListener<Location>() {
-                    @Override
-                    public void onSuccess(Location location) {
-                        if (location != null) {
-
-                        }
-                    }
-                });
-
         DirectionsResult results = getDirectionsDetails(origine,destination,TravelMode.DRIVING);
         if (results != null) {
             addPolyline(results, googleMap);
@@ -139,17 +125,7 @@ public class MapsActivity extends FragmentActivity implements
         return  "Time :"+ results.routes[overview].legs[overview].duration.humanReadable + " Distance :" + results.routes[overview].legs[overview].distance.humanReadable;
     }
 
-    protected void createLocationRequest() {
-       LocationRequest mLocationRequest = new LocationRequest();
-       mLocationRequest.setInterval(10000);
-       mLocationRequest.setFastestInterval(5000);
-       mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 
-       LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
-                .addLocationRequest(mLocationRequest);
-
-
-    }
 
     @Override
     public boolean onMyLocationButtonClick() {
@@ -200,6 +176,51 @@ public class MapsActivity extends FragmentActivity implements
     }
 
 
+/*                  //////////////////////////////////// début de geofencing //////////////////
+
+    import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.tasks.OnSuccessListener;
+import android.os.Handler;
+import android.os.ResultReceiver;
+import com.google.android.gms.location.*;
+import android.content.Intent;
+
+
+
+    /////////// pour geofencing ///////////
+    static final int GEOFENCE_RADIUS_IN_METERS = 2;
+    private GeofencingClient mGeofencingClient;
+    Geofence mGeofenceList;
+
+    dans le oncreate :
+
+    mGeofencingClient = LocationServices.getGeofencingClient(this);
+        mGeofenceList.add(new Geofence.Builder()
+                // Set the request ID of the geofence. This is a string to identify this
+                // geofence.
+                .setRequestId(entry.getKey())
+
+            .setCircularRegion(
+            entry.getValue().latitude,
+            entry.getValue().longitude,
+    GEOFENCE_RADIUS_IN_METERS
+                )
+                        .setExpirationDuration(Constants.GEOFENCE_EXPIRATION_IN_MILLISECONDS)
+                .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER |
+            Geofence.GEOFENCE_TRANSITION_EXIT)
+                .build());
+
+    private GeofencingRequest getGeofencingRequest() {
+        GeofencingRequest.Builder builder = new GeofencingRequest.Builder();
+        builder.setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER);
+        builder.addGeofences(mGeofenceList);
+        return builder.build();
+    }
+
+*/
 
 
 
